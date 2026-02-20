@@ -10,9 +10,18 @@ const Loader = ({ fullPage = false }) => {
 };
 
 export const SkeletonDashboard = () => (
-    <div style={{ padding: '40px 24px', maxWidth: 860, margin: '0 auto' }}>
+    <div className="skel-dashboard">
         <div className="skeleton skel-balance" />
-        <div className="skeleton skel-card" />
+        <div className="skel-stats-row">
+            <div className="skeleton skel-stat" />
+            <div className="skeleton skel-stat" />
+            <div className="skeleton skel-stat" />
+            <div className="skeleton skel-stat" />
+        </div>
+        <div className="skel-bottom-row">
+            <div className="skeleton skel-chart" />
+            <div className="skeleton skel-txn" />
+        </div>
     </div>
 );
 

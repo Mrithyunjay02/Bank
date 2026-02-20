@@ -1,0 +1,10 @@
+node_modules/
+dist/
+build/
+.env
+bank-frontend/node_modules/
+bank-frontend/dist/
+bank-backend/node_modules/
+bank-backend/dist/
+bank-frontend/.env
+bank-backend/.env

@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../utils/axios';
-import Input from '../components/Input';
-import Button from '../components/Button';
 import { useToast } from '../components/Toast';
+import AuthLayout from '../components/AuthLayout';
+import InputField from '../components/InputField';
+import GradientButton from '../components/GradientButton';
 
 const Register = () => {
     const navigate = useNavigate();
@@ -17,7 +18,7 @@ const Register = () => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setForm((f) => ({ ...f, [name]: value }));
-        setErrors((e) => ({ ...e, [name]: '' }));
+        setErrors((prev) => ({ ...prev, [name]: '' }));
         setApiError('');
     };
 
@@ -55,84 +56,87 @@ const Register = () => {
     };
 
     return (
-        <div className="auth-wrap">
-            <div className="auth-card">
-                <div className="auth-logo">
-                    <div className="logo-icon" aria-hidden="true">🏦</div>
-                    <span className="logo-text">SecureBank</span>
+        <AuthLayout>
+            <div className="auth-brand">
+                <div className="auth-brand-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="2" y="6" width="20" height="14" rx="2" />
+                        <path d="M2 10h20" /><path d="M6 14h.01" /><path d="M10 14h4" />
+                    </svg>
                 </div>
-
-                <h1 className="auth-heading">Create account</h1>
-                <p className="auth-sub">Join thousands banking securely.</p>
-
-                {apiError && (
-                    <div className="alert alert-error" role="alert">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
-                        </svg>
-                        {apiError}
-                    </div>
-                )}
-
-                <form onSubmit={handleSubmit} noValidate>
-                    <Input
-                        label="Username"
-                        id="username"
-                        name="username"
-                        type="text"
-                        placeholder="e.g. johndoe"
-                        value={form.username}
-                        onChange={handleChange}
-                        error={errors.username}
-                        autoComplete="username"
-                        required
-                    />
-                    <Input
-                        label="Email"
-                        id="email"
-                        name="email"
-                        type="email"
-                        placeholder="you@example.com"
-                        value={form.email}
-                        onChange={handleChange}
-                        error={errors.email}
-                        autoComplete="email"
-                        required
-                    />
-                    <Input
-                        label="Password"
-                        id="password"
-                        name="password"
-                        type="password"
-                        placeholder="Min. 6 characters"
-                        value={form.password}
-                        onChange={handleChange}
-                        error={errors.password}
-                        autoComplete="new-password"
-                        required
-                    />
-                    <Input
-                        label="Phone (optional)"
-                        id="phone"
-                        name="phone"
-                        type="tel"
-                        placeholder="+91 98765 43210"
-                        value={form.phone}
-                        onChange={handleChange}
-                        autoComplete="tel"
-                    />
-
-                    <Button type="submit" variant="primary" loading={loading} style={{ marginTop: 4 }}>
-                        {loading ? 'Creating account…' : 'Create account'}
-                    </Button>
-                </form>
-
-                <p className="auth-footer">
-                    Already have an account?{' '}
-                    <Link to="/login">Sign in</Link>
-                </p>
+                <span className="auth-brand-name">SecureBank</span>
             </div>
-        </div>
+
+            <h1 className="auth-title">Create account</h1>
+            <p className="auth-subtitle">Join thousands banking securely.</p>
+
+            {apiError && (
+                <div className="auth-alert" role="alert">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                    <span>{apiError}</span>
+                </div>
+            )}
+
+            <form onSubmit={handleSubmit} noValidate className="auth-form">
+                <InputField
+                    label="Username"
+                    id="reg-username"
+                    name="username"
+                    type="text"
+                    value={form.username}
+                    onChange={handleChange}
+                    error={errors.username}
+                    autoComplete="username"
+                    required
+                    delay={100}
+                />
+                <InputField
+                    label="Email"
+                    id="reg-email"
+                    name="email"
+                    type="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    error={errors.email}
+                    autoComplete="email"
+                    required
+                    delay={150}
+                />
+                <InputField
+                    label="Password"
+                    id="reg-password"
+                    name="password"
+                    type="password"
+                    value={form.password}
+                    onChange={handleChange}
+                    error={errors.password}
+                    autoComplete="new-password"
+                    required
+                    delay={200}
+                />
+                <InputField
+                    label="Phone (optional)"
+                    id="reg-phone"
+                    name="phone"
+                    type="tel"
+                    value={form.phone}
+                    onChange={handleChange}
+                    autoComplete="tel"
+                    delay={250}
+                />
+
+                <GradientButton type="submit" loading={loading}>
+                    {loading ? 'Creating account…' : 'Create account'}
+                </GradientButton>
+            </form>
+
+            <p className="auth-switch">
+                Already have an account?{' '}
+                <Link to="/login" className="auth-switch-link">Sign in</Link>
+            </p>
+        </AuthLayout>
     );
 };
 

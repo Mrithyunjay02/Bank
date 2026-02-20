@@ -1,14 +1,35 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/axios';
-import Navbar from '../components/Navbar';
+import { decodeToken, removeToken } from '../utils/auth';
 import { SkeletonDashboard } from '../components/Loader';
+import BalanceCard from '../components/BalanceCard';
+import StatCard from '../components/StatCard';
+import ChartCard from '../components/ChartCard';
+import TransactionList from '../components/TransactionList';
 
-const UserIcon = () => (
-    <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2"
-        strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-        <circle cx="12" cy="7" r="4" />
+const WalletIcon = () => (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" /><path d="M3 5v14a2 2 0 0 0 2 2h16v-5" /><path d="M18 12a2 2 0 0 0 0 4h4v-4h-4Z" />
+    </svg>
+);
+
+const IncomeIcon = () => (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" /><polyline points="17 6 23 6 23 12" />
+    </svg>
+);
+
+const ExpenseIcon = () => (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" /><polyline points="17 18 23 18 23 12" />
+    </svg>
+);
+
+const SavingsIcon = () => (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-.5 1.7-1 2-2h2v-4h-2c0-1-.5-1.5-1-2V5z" />
+        <path d="M2 9.5h3" /><path d="M15 8h.01" />
     </svg>
 );
 
@@ -25,7 +46,7 @@ const Dashboard = () => {
                 setUser(res.data);
             } catch (err) {
                 if (err.response?.status === 401) {
-                    localStorage.removeItem('token');
+                    removeToken();
                     navigate('/login');
                 } else {
                     setError(err.response?.data?.error || 'Failed to load account details.');
@@ -38,30 +59,19 @@ const Dashboard = () => {
     }, [navigate]);
 
     if (loading) {
-        return (
-            <div className="dash-wrap">
-                <Navbar />
-                <SkeletonDashboard />
-            </div>
-        );
+        return <SkeletonDashboard />;
     }
 
     if (error) {
         return (
-            <div className="dash-wrap">
-                <Navbar />
-                <div className="dash-body" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
-                    <div className="alert alert-error" style={{ maxWidth: 420 }}>
-                        <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
-                        </svg>
-                        {error}
-                    </div>
-                    <button
-                        className="btn btn-ghost"
-                        style={{ marginTop: 16 }}
-                        onClick={() => { localStorage.removeItem('token'); navigate('/login'); }}
-                    >
+            <div className="dash-error-wrap">
+                <div className="dash-error-card">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                    <h2 className="dash-error-title">Something went wrong</h2>
+                    <p className="dash-error-msg">{error}</p>
+                    <button className="btn btn-primary" onClick={() => { removeToken(); navigate('/login'); }}>
                         Back to Login
                     </button>
                 </div>
@@ -73,70 +83,59 @@ const Dashboard = () => {
         year: 'numeric', month: 'long', day: 'numeric',
     });
 
-    const balance = parseFloat(user.balance).toLocaleString('en-US', {
-        minimumFractionDigits: 2, maximumFractionDigits: 2,
+    const balance = parseFloat(user.balance);
+
+    const formatCurrency = (val) => val.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
     });
 
     return (
-        <div className="dash-wrap">
-            <Navbar username={user.username} />
+        <div className="dashboard">
+            {/* Balance Section */}
+            <BalanceCard
+                balance={balance}
+                username={user.username}
+                memberSince={memberSince}
+            />
 
-            <main className="dash-body">
-                {/* Balance card */}
-                <section className="balance-card" aria-label="Account balance">
-                    <p className="balance-tag">Available Balance</p>
-                    <p className="balance-amount">${balance}</p>
-                    <div className="balance-meta">
-                        <UserIcon />
-                        <span>{user.username}</span>
-                        <span style={{ opacity: 0.5, margin: '0 6px' }}>·</span>
-                        <span>Member since {memberSince}</span>
-                    </div>
-                </section>
+            {/* Stats Row */}
+            <div className="stats-row">
+                <StatCard
+                    icon={<WalletIcon />}
+                    label="Total Balance"
+                    value={`$${formatCurrency(balance)}`}
+                    trend="+2.5%"
+                    trendUp
+                />
+                <StatCard
+                    icon={<IncomeIcon />}
+                    label="Monthly Income"
+                    value="$4,500.00"
+                    trend="+12.3%"
+                    trendUp
+                />
+                <StatCard
+                    icon={<ExpenseIcon />}
+                    label="Monthly Expenses"
+                    value="$2,180.50"
+                    trend="-3.1%"
+                    trendUp={false}
+                />
+                <StatCard
+                    icon={<SavingsIcon />}
+                    label="Savings"
+                    value="$1,250.00"
+                    trend="+8.7%"
+                    trendUp
+                />
+            </div>
 
-                {/* Profile card */}
-                <section className="profile-card" aria-label="Account details">
-                    <h2 className="profile-card-header">Account Details</h2>
-                    <div className="profile-grid">
-                        <div className="profile-item">
-                            <p className="profile-label">Username</p>
-                            <p className="profile-value">{user.username}</p>
-                        </div>
-                        <div className="profile-item">
-                            <p className="profile-label">Email</p>
-                            <p className="profile-value">{user.email}</p>
-                        </div>
-                        <div className="profile-item">
-                            <p className="profile-label">Phone</p>
-                            <p className="profile-value">{user.phone || <span style={{ color: 'var(--text-muted)' }}>Not provided</span>}</p>
-                        </div>
-                        <div className="profile-item">
-                            <p className="profile-label">Account ID</p>
-                            <p className="profile-value" style={{ fontFamily: 'monospace', fontSize: '0.9rem' }}>
-                                #{String(user.id).padStart(6, '0')}
-                            </p>
-                        </div>
-                        <div className="profile-item">
-                            <p className="profile-label">Member Since</p>
-                            <p className="profile-value">{memberSince}</p>
-                        </div>
-                        <div className="profile-item">
-                            <p className="profile-label">Account Status</p>
-                            <p className="profile-value">
-                                <span style={{
-                                    display: 'inline-flex', alignItems: 'center', gap: 6,
-                                    padding: '2px 10px', borderRadius: 99,
-                                    background: '#f0fdf4', color: '#15803d',
-                                    fontSize: '0.82rem', fontWeight: 600,
-                                }}>
-                                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} />
-                                    Active
-                                </span>
-                            </p>
-                        </div>
-                    </div>
-                </section>
-            </main>
+            {/* Bottom Grid: Chart + Transactions */}
+            <div className="dashboard-bottom">
+                <ChartCard />
+                <TransactionList />
+            </div>
         </div>
     );
 };
